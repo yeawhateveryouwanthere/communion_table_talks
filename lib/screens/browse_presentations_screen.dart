@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/presentation.dart';
 import '../models/scheduled_presentation.dart';
-import '../data/sample_presentations.dart';
+import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/presentation_card.dart';
@@ -37,6 +37,8 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
   late String _searchQuery;
   PresentationLength? _selectedLength;
   String? _selectedTopic;
+  List<Presentation> _allPresentations = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -53,6 +55,16 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
     }
     _searchQuery = initialSearch.join(' ');
     _searchController = TextEditingController(text: _searchQuery);
+
+    _loadPresentations();
+  }
+
+  Future<void> _loadPresentations() async {
+    final presentations = await FirestoreService.getAllPresentations();
+    setState(() {
+      _allPresentations = presentations;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -63,7 +75,7 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
 
   List<String> get _allTopics {
     final topics = <String>{};
-    for (final p in samplePresentations) {
+    for (final p in _allPresentations) {
       topics.addAll(p.topicTags);
     }
     final sorted = topics.toList()..sort();
@@ -71,7 +83,7 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
   }
 
   List<Presentation> get _filteredPresentations {
-    return samplePresentations.where((p) {
+    return _allPresentations.where((p) {
       if (_searchQuery.isNotEmpty) {
         final query = _searchQuery.toLowerCase();
         final matchesTitle = p.title.toLowerCase().contains(query);
@@ -142,8 +154,20 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filteredPresentations;
     final isScheduling = widget.scheduledDate != null;
+
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(isScheduling
+              ? 'Select Presentation'
+              : 'Browse Presentations'),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final filtered = _filteredPresentations;
 
     return Scaffold(
       appBar: AppBar(

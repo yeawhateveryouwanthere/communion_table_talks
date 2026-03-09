@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/scheduled_presentation.dart';
 import '../models/presentation.dart';
-import '../data/sample_presentations.dart';
+import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import 'select_date_screen.dart';
@@ -34,12 +34,18 @@ class _MyPresentationsScreenState extends State<MyPresentationsScreen> {
     });
   }
 
-  /// Find the full presentation object by ID.
-  Presentation? _findPresentation(String id) {
-    try {
-      return samplePresentations.firstWhere((p) => p.id == id);
-    } catch (_) {
-      return null;
+  /// Find the full presentation object by ID from Firestore.
+  Future<void> _openPresentation(String id) async {
+    final presentation = await FirestoreService.getPresentation(id);
+    if (presentation != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PresentationDetailScreen(
+            presentation: presentation,
+          ),
+        ),
+      );
     }
   }
 
@@ -240,19 +246,7 @@ class _MyPresentationsScreenState extends State<MyPresentationsScreen> {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
-        onTap: () {
-          final presentation = _findPresentation(item.presentationId);
-          if (presentation != null) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PresentationDetailScreen(
-                  presentation: presentation,
-                ),
-              ),
-            );
-          }
-        },
+        onTap: () => _openPresentation(item.presentationId),
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),

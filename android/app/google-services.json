@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "6523279108",
+    "project_id": "communion-table-talks",
+    "storage_bucket": "communion-table-talks.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:6523279108:android:7a99b66d4f4ff2676b2251",
+        "android_client_info": {
+          "package_name": "com.example.communion_table_talks"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlXk7_KMaKxjFmCYeOWxnAtXVVMfIyYcc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
