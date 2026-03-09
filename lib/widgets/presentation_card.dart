@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/presentation.dart';
 import '../theme/app_theme.dart';
 
 class PresentationCard extends StatelessWidget {
   final Presentation presentation;
   final VoidCallback onTap;
+  final DateTime? scheduledDate;
+  final VoidCallback? onUsePresentation;
 
   const PresentationCard({
     super.key,
     required this.presentation,
     required this.onTap,
+    this.scheduledDate,
+    this.onUsePresentation,
   });
 
   @override
@@ -71,12 +76,14 @@ class PresentationCard extends StatelessWidget {
                     color: AppTheme.accentColor,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    presentation.scripturePassage,
-                    style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      presentation.scripturePassage,
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -116,6 +123,32 @@ class PresentationCard extends StatelessWidget {
                   );
                 }).toList(),
               ),
+
+              // "Use this presentation" button
+              if (onUsePresentation != null && scheduledDate != null) ...[
+                const SizedBox(height: 12),
+                const Divider(color: AppTheme.dividerColor),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: onUsePresentation,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: Text(
+                      'Use this for ${DateFormat.MMMd().format(scheduledDate!)}',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
