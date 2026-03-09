@@ -8,6 +8,7 @@ class PresentationCard extends StatelessWidget {
   final VoidCallback onTap;
   final DateTime? scheduledDate;
   final VoidCallback? onUsePresentation;
+  final bool isLocked;
 
   const PresentationCard({
     super.key,
@@ -15,6 +16,7 @@ class PresentationCard extends StatelessWidget {
     required this.onTap,
     this.scheduledDate,
     this.onUsePresentation,
+    this.isLocked = false,
   });
 
   @override
@@ -73,6 +75,36 @@ class PresentationCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
+                    if (isLocked) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.textSecondary.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.lock,
+                              size: 12,
+                              color: AppTheme.textSecondary.withOpacity(0.5),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Premium',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textSecondary.withOpacity(0.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
                     Text(
                       _formatDate(presentation.datePublished),
                       style: Theme.of(context).textTheme.labelSmall,
@@ -126,7 +158,11 @@ class PresentationCard extends StatelessWidget {
                 // Summary
                 Text(
                   presentation.summary,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: isLocked
+                            ? AppTheme.textSecondary.withOpacity(0.5)
+                            : null,
+                      ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),

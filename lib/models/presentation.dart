@@ -19,6 +19,7 @@ class Presentation {
   final PresentationLength length;
   final List<String> suggestedHymns;
   final DateTime datePublished;
+  final bool isFree;
 
   Presentation({
     required this.id,
@@ -30,6 +31,7 @@ class Presentation {
     required this.length,
     required this.suggestedHymns,
     required this.datePublished,
+    this.isFree = false,
   });
 
   /// Human-readable label for the length category.
@@ -61,6 +63,7 @@ class Presentation {
       datePublished: map['datePublished'] != null
           ? DateTime.parse(map['datePublished'])
           : DateTime.now(),
+      isFree: map['isFree'] ?? false,
     );
   }
 
@@ -75,6 +78,7 @@ class Presentation {
       'length': length.name,
       'suggestedHymns': suggestedHymns,
       'datePublished': datePublished.toIso8601String(),
+      'isFree': isFree,
     };
   }
 }

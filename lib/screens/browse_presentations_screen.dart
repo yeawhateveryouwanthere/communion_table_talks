@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/presentation.dart';
 import '../models/scheduled_presentation.dart';
+import 'package:provider/provider.dart';
+import '../providers/subscription_provider.dart';
 import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
@@ -409,9 +411,13 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
                           itemCount: filtered.length,
                           itemBuilder: (context, index) {
                             final presentation = filtered[index];
+                            final subProvider =
+                                context.watch<SubscriptionProvider>();
+                            final isLocked = !subProvider.canAccess(presentation);
                             return PresentationCard(
                               presentation: presentation,
                               scheduledDate: widget.scheduledDate,
+                              isLocked: isLocked,
                               onTap: () async {
                                 final result =
                                     await Navigator.push<bool>(
@@ -421,6 +427,7 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
                                         PresentationDetailScreen(
                                       presentation: presentation,
                                       scheduledDate: widget.scheduledDate,
+                                      isLocked: isLocked,
                                     ),
                                   ),
                                 );
@@ -429,7 +436,7 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
                                       .popUntil((route) => route.isFirst);
                                 }
                               },
-                              onUsePresentation: isScheduling
+                              onUsePresentation: isScheduling && !isLocked
                                   ? () => _usePresentation(presentation)
                                   : null,
                             );

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'screens/main_shell_screen.dart';
 import 'data/seed_firestore.dart';
+import 'providers/auth_provider.dart' as app_auth;
+import 'providers/subscription_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +23,31 @@ class CommunionTableTalksApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => app_auth.AuthProvider()),
+        ChangeNotifierProvider(create: (_) => SubscriptionProvider()),
+      ],
+      child: _AppWithAuthListener(),
+    );
+  }
+}
+
+/// Listens to auth changes and connects the SubscriptionProvider
+/// to the current user.
+class _AppWithAuthListener extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Watch auth state and sync subscription listener
+    final authProvider = context.watch<app_auth.AuthProvider>();
+    final subscriptionProvider = context.read<SubscriptionProvider>();
+
+    if (authProvider.isSignedIn) {
+      subscriptionProvider.listenToUser(authProvider.user!.uid);
+    } else {
+      subscriptionProvider.clearUser();
+    }
+
     return MaterialApp(
       title: 'Communion Table Talks',
       theme: AppTheme.lightTheme,

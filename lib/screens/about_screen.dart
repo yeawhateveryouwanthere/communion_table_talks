@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../providers/auth_provider.dart' as app_auth;
+import '../providers/subscription_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/discount_code_dialog.dart';
+import 'auth_screen.dart';
+import 'subscription_screen.dart';
 
 /// About screen showing the author's biography, contact info,
-/// and app details.
+/// and app details. Also shows account/subscription status.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
@@ -19,6 +25,273 @@ class AboutScreen extends StatelessWidget {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
+  }
+
+  Widget _buildAccountCard(BuildContext context) {
+    final authProvider = context.watch<app_auth.AuthProvider>();
+    final subProvider = context.watch<SubscriptionProvider>();
+
+    if (!authProvider.isSignedIn) {
+      // Not signed in — show sign-in prompt
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppTheme.cardColor,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: AppTheme.cardShadow,
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.account_circle_outlined,
+              size: 40,
+              color: AppTheme.primaryColor.withOpacity(0.4),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Sign in to unlock all presentations',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.primaryColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Free presentations are always available without an account.',
+              style: TextStyle(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                ),
+                icon: const Icon(Icons.login, size: 18),
+                label: const Text(
+                  'Sign In',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Signed in — show account info and subscription status
+    final isSubscribed = subProvider.isSubscribed;
+    final tier = subProvider.subscription?.subscriptionTier ?? 'free';
+    final discountCode = subProvider.subscription?.discountCodeApplied;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.cardColor,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: AppTheme.cardShadow,
+      ),
+      child: Column(
+        children: [
+          // User info row
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.08),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.person,
+                  size: 24,
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      authProvider.displayName ?? 'User',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    if (authProvider.email != null)
+                      Text(
+                        authProvider.email!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Subscription status
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isSubscribed
+                  ? Colors.green.shade50
+                  : AppTheme.accentColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isSubscribed ? Icons.star : Icons.star_border,
+                  size: 18,
+                  color: isSubscribed
+                      ? Colors.green.shade700
+                      : AppTheme.accentDark,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    isSubscribed
+                        ? discountCode != null
+                            ? 'Active (code: $discountCode)'
+                            : 'Active — ${tier[0].toUpperCase()}${tier.substring(1)} plan'
+                        : 'Free plan — 9 presentations available',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isSubscribed
+                          ? Colors.green.shade700
+                          : AppTheme.textSecondary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          // Manage subscription / discount code buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const SubscriptionScreen()),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    side: BorderSide(
+                        color: AppTheme.primaryColor.withOpacity(0.2)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  icon: Icon(Icons.star_border,
+                      size: 16, color: AppTheme.primaryColor),
+                  label: Text(
+                    isSubscribed ? 'Manage' : 'Subscribe',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => DiscountCodeDialog.show(context),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    side: BorderSide(
+                        color: AppTheme.primaryColor.withOpacity(0.2)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  icon: Icon(Icons.confirmation_number_outlined,
+                      size: 16, color: AppTheme.primaryColor),
+                  label: Text(
+                    'Use Code',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          // Sign out button
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () async {
+                await authProvider.signOut();
+              },
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                side: BorderSide(color: AppTheme.dividerColor),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              icon: Icon(Icons.logout, size: 18, color: AppTheme.textSecondary),
+              label: Text(
+                'Sign Out',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -68,6 +341,11 @@ class AboutScreen extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 8),
+
+                  // Account / Subscription card
+                  _buildAccountCard(context),
+
+                  const SizedBox(height: 20),
 
                   // Author photo
                   Container(

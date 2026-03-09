@@ -4,15 +4,18 @@ import '../models/presentation.dart';
 import '../models/scheduled_presentation.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/paywall_bottom_sheet.dart';
 
 class PresentationDetailScreen extends StatelessWidget {
   final Presentation presentation;
   final DateTime? scheduledDate;
+  final bool isLocked;
 
   const PresentationDetailScreen({
     super.key,
     required this.presentation,
     this.scheduledDate,
+    this.isLocked = false,
   });
 
   Future<void> _usePresentation(BuildContext context) async {
@@ -115,6 +118,36 @@ class PresentationDetailScreen extends StatelessWidget {
                               ],
                             ),
                           ),
+                          if (isLocked) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.lock,
+                                    size: 13,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Premium',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           const SizedBox(width: 16),
                         ],
                       ),
@@ -211,8 +244,12 @@ class PresentationDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Body text — the main reading content
-                  _buildBodyText(context),
+                  if (isLocked)
+                    _buildLockedContent(context)
+                  else
+                    _buildBodyText(context),
 
+                  if (!isLocked) ...[
                   const SizedBox(height: 32),
 
                   // Divider with decorative element
@@ -238,9 +275,10 @@ class PresentationDetailScreen extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 24),
+                  ], // end !isLocked divider section
 
                   // Suggested Hymns
-                  if (presentation.suggestedHymns.isNotEmpty) ...[
+                  if (!isLocked && presentation.suggestedHymns.isNotEmpty) ...[
                     _buildSectionLabel(context, 'Suggested Hymns',
                         Icons.music_note),
                     const SizedBox(height: 12),
@@ -288,7 +326,10 @@ class PresentationDetailScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                   ],
 
-                  // Topic tags
+                  if (isLocked)
+                    const SizedBox(height: 24),
+
+                  // Topic tags (always show, even for locked)
                   _buildSectionLabel(context, 'Topics', Icons.label_outline),
                   const SizedBox(height: 10),
                   Wrap(
@@ -320,8 +361,8 @@ class PresentationDetailScreen extends StatelessWidget {
             ),
           ),
 
-          // Bottom "Use this presentation" button
-          if (scheduledDate != null)
+          // Bottom "Use this presentation" button (hidden for locked content)
+          if (scheduledDate != null && !isLocked)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
@@ -377,6 +418,82 @@ class PresentationDetailScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLockedContent(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppTheme.primaryColor.withOpacity(0.1),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppTheme.accentColor.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.lock_outline,
+              size: 32,
+              color: AppTheme.primaryColor.withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Premium Content',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Subscribe to read the full presentation text, suggested hymns, and more.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: AppTheme.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                PaywallBottomSheet.show(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              icon: const Icon(Icons.star, size: 18),
+              label: const Text(
+                'Subscribe to Unlock',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

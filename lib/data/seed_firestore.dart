@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'sample_presentations.dart';
+import '../services/firestore_service.dart';
 
 /// Seeds Firestore with sample presentation data.
 ///
@@ -12,15 +13,23 @@ Future<void> seedFirestore() async {
   final existing = await collection.limit(1).get();
   if (existing.docs.isNotEmpty) {
     print('Firestore already has presentations. Skipping seed.');
-    return;
+  } else {
+    print('Seeding Firestore with sample presentations...');
+
+    for (final presentation in samplePresentations) {
+      await collection.add(presentation.toMap());
+      print('  Added: ${presentation.title}');
+    }
+
+    print('Done! Added ${samplePresentations.length} presentations.');
   }
 
-  print('Seeding Firestore with sample presentations...');
+  // Ensure all presentations have the isFree field
+  await FirestoreService.ensureIsFreeField();
 
-  for (final presentation in samplePresentations) {
-    await collection.add(presentation.toMap());
-    print('  Added: ${presentation.title}');
-  }
+  // Seed free presentations (3 brief, 3 medium, 3 substantive)
+  await FirestoreService.seedFreePresentations();
 
-  print('Done! Added ${samplePresentations.length} presentations.');
+  // Seed discount codes (OrangeView)
+  await FirestoreService.seedDiscountCodes();
 }

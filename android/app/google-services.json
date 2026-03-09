@@ -12,7 +12,20 @@
           "package_name": "com.example.communion_table_talks"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "6523279108-sg29jr8mpkl1prts4u5a4p98ustheabu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.communion_table_talks",
+            "certificate_hash": "19e05da0c509f59a6d656399c42dfd61a5016c10"
+          }
+        },
+        {
+          "client_id": "6523279108-m8n848flm5nu4bs7ml560rudu4nejp53.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBlXk7_KMaKxjFmCYeOWxnAtXVVMfIyYcc"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "6523279108-m8n848flm5nu4bs7ml560rudu4nejp53.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "6523279108-hgftbj3r6btda4s9kvr43k3cl7dmjsu0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.communionTableTalks"
+              }
+            }
+          ]
         }
       }
     }
