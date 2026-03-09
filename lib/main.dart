@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'theme/app_theme.dart';
-import 'screens/my_presentations_screen.dart';
+import 'screens/main_shell_screen.dart';
 import 'data/seed_firestore.dart';
 
 void main() async {
@@ -23,7 +23,7 @@ class CommunionTableTalksApp extends StatelessWidget {
     return MaterialApp(
       title: 'Communion Table Talks',
       theme: AppTheme.lightTheme,
-      home: const MyPresentationsScreen(),
+      home: const MainShellScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

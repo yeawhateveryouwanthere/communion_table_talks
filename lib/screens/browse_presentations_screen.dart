@@ -18,6 +18,7 @@ class BrowsePresentationsScreen extends StatefulWidget {
   final PresentationLength? filterLength;
   final String? filterPassage;
   final String? filterTopic;
+  final bool isTab;
 
   const BrowsePresentationsScreen({
     super.key,
@@ -25,6 +26,7 @@ class BrowsePresentationsScreen extends StatefulWidget {
     this.filterLength,
     this.filterPassage,
     this.filterTopic,
+    this.isTab = false,
   });
 
   @override
@@ -162,8 +164,9 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           // Image header
           SliverAppBar(
-            expandedHeight: isScheduling ? 140 : 120,
+            expandedHeight: isScheduling ? 140 : 160,
             pinned: true,
+            automaticallyImplyLeading: !widget.isTab,
             backgroundColor: AppTheme.primaryDark,
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
