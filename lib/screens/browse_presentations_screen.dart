@@ -45,7 +45,6 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
     super.initState();
     _selectedLength = widget.filterLength;
 
-    // Combine passage and topic filters into the search query
     final initialSearch = <String>[];
     if (widget.filterPassage != null && widget.filterPassage!.isNotEmpty) {
       initialSearch.add(widget.filterPassage!);
@@ -144,10 +143,11 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
             '"${presentation.title}" scheduled for $dateStr',
           ),
           behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           backgroundColor: AppTheme.primaryColor,
         ),
       );
-      // Pop back to the home screen
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
@@ -155,212 +155,314 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
   @override
   Widget build(BuildContext context) {
     final isScheduling = widget.scheduledDate != null;
-
-    if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(isScheduling
-              ? 'Select Presentation'
-              : 'Browse Presentations'),
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
     final filtered = _filteredPresentations;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isScheduling
-            ? 'Select Presentation'
-            : 'Browse Presentations'),
-      ),
-      body: Column(
-        children: [
-          // Date banner if scheduling
-          if (isScheduling)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: AppTheme.accentColor.withOpacity(0.15),
-              child: Row(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          // Image header
+          SliverAppBar(
+            expandedHeight: isScheduling ? 140 : 120,
+            pinned: true,
+            backgroundColor: AppTheme.primaryDark,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: true,
+              title: Text(
+                isScheduling ? 'Select Presentation' : 'Browse Presentations',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4,
+                      color: Color(0x88000000),
+                    ),
+                  ],
+                ),
+              ),
+              background: Stack(
+                fit: StackFit.expand,
                 children: [
-                  Icon(Icons.calendar_today,
-                      size: 16, color: AppTheme.primaryColor),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Presenting on ${DateFormat.EEEE().format(widget.scheduledDate!)}, ${DateFormat.yMMMd().format(widget.scheduledDate!)}',
-                    style: TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
+                  Image.asset(
+                    'assets/images/header_browse.jpeg',
+                    fit: BoxFit.cover,
+                  ),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.2),
+                          Colors.black.withOpacity(0.55),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by title, passage, or topic...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          setState(() {
-                            _searchController.clear();
-                            _searchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.dividerColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppTheme.dividerColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppTheme.primaryColor),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-            ),
-          ),
-
-          // Filter chips
-          SizedBox(
-            height: 48,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _buildLengthChip('Brief', PresentationLength.brief),
-                const SizedBox(width: 8),
-                _buildLengthChip('Medium', PresentationLength.medium),
-                const SizedBox(width: 8),
-                _buildLengthChip('Substantive', PresentationLength.substantive),
-                const SizedBox(width: 12),
-                Container(
-                  width: 1,
-                  height: 24,
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  color: AppTheme.dividerColor,
-                ),
-                const SizedBox(width: 12),
-                _buildTopicDropdown(),
-                if (_hasActiveFilters) ...[
-                  const SizedBox(width: 12),
-                  ActionChip(
-                    label: const Text('Clear All'),
-                    avatar: const Icon(Icons.clear, size: 16),
-                    onPressed: _clearFilters,
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Results count
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Text(
-                  '${filtered.length} presentation${filtered.length == 1 ? '' : 's'}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Presentation list
-          Expanded(
-            child: filtered.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: AppTheme.textSecondary.withOpacity(0.4),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No presentations found',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: _clearFilters,
-                          child: const Text('Clear filters'),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final presentation = filtered[index];
-                      return PresentationCard(
-                        presentation: presentation,
-                        scheduledDate: widget.scheduledDate,
-                        onTap: () async {
-                          final result = await Navigator.push<bool>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PresentationDetailScreen(
-                                presentation: presentation,
-                                scheduledDate: widget.scheduledDate,
-                              ),
-                            ),
-                          );
-                          // If the user selected this presentation from
-                          // the detail screen, pop back to home.
-                          if (result == true && mounted) {
-                            Navigator.of(context)
-                                .popUntil((route) => route.isFirst);
-                          }
-                        },
-                        onUsePresentation: isScheduling
-                            ? () => _usePresentation(presentation)
-                            : null,
-                      );
-                    },
-                  ),
           ),
         ],
+        body: Column(
+          children: [
+            // Date banner if scheduling
+            if (isScheduling)
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor.withOpacity(0.12),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: AppTheme.accentColor.withOpacity(0.2),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.calendar_today,
+                        size: 15, color: AppTheme.accentDark),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Presenting on ${DateFormat.EEEE().format(widget.scheduledDate!)}, ${DateFormat.yMMMd().format(widget.scheduledDate!)}',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Container(
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      offset: const Offset(0, 2),
+                      blurRadius: 8,
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search by title, passage, or topic...',
+                    hintStyle: TextStyle(
+                      color: AppTheme.textSecondary.withOpacity(0.5),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(Icons.search,
+                        color: AppTheme.primaryColor.withOpacity(0.5)),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.clear,
+                                color:
+                                    AppTheme.textSecondary.withOpacity(0.5)),
+                            onPressed: () {
+                              setState(() {
+                                _searchController.clear();
+                                _searchQuery = '';
+                              });
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(
+                          color: AppTheme.primaryColor, width: 1.5),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                ),
+              ),
+            ),
+
+            // Filter chips
+            SizedBox(
+              height: 48,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _buildLengthChip('Brief', PresentationLength.brief),
+                  const SizedBox(width: 8),
+                  _buildLengthChip('Medium', PresentationLength.medium),
+                  const SizedBox(width: 8),
+                  _buildLengthChip(
+                      'Substantive', PresentationLength.substantive),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    color: AppTheme.dividerColor,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildTopicDropdown(),
+                  if (_hasActiveFilters) ...[
+                    const SizedBox(width: 12),
+                    ActionChip(
+                      label: const Text('Clear All'),
+                      avatar: const Icon(Icons.clear, size: 14),
+                      onPressed: _clearFilters,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Results count
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Text(
+                    '${filtered.length} presentation${filtered.length == 1 ? '' : 's'}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Presentation list
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : filtered.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.textSecondary
+                                      .withOpacity(0.06),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.search_off,
+                                  size: 40,
+                                  color: AppTheme.textSecondary
+                                      .withOpacity(0.3),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No presentations found',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: AppTheme.textSecondary,
+                                    ),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: _clearFilters,
+                                child: const Text('Clear filters'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) {
+                            final presentation = filtered[index];
+                            return PresentationCard(
+                              presentation: presentation,
+                              scheduledDate: widget.scheduledDate,
+                              onTap: () async {
+                                final result =
+                                    await Navigator.push<bool>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        PresentationDetailScreen(
+                                      presentation: presentation,
+                                      scheduledDate: widget.scheduledDate,
+                                    ),
+                                  ),
+                                );
+                                if (result == true && mounted) {
+                                  Navigator.of(context)
+                                      .popUntil((route) => route.isFirst);
+                                }
+                              },
+                              onUsePresentation: isScheduling
+                                  ? () => _usePresentation(presentation)
+                                  : null,
+                            );
+                          },
+                        ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildLengthChip(String label, PresentationLength length) {
     final isSelected = _selectedLength == length;
+    final color = AppTheme.lengthColor(label);
     return FilterChip(
-      label: Text(label),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isSelected) ...[
+            Icon(AppTheme.lengthIcon(label), size: 14, color: color),
+            const SizedBox(width: 4),
+          ],
+          Text(label),
+        ],
+      ),
       selected: isSelected,
-      selectedColor: AppTheme.lengthColor(label).withOpacity(0.2),
-      checkmarkColor: AppTheme.lengthColor(label),
+      selectedColor: color.withOpacity(0.15),
+      checkmarkColor: color,
+      showCheckmark: false,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      side: isSelected
+          ? BorderSide(color: color.withOpacity(0.3))
+          : BorderSide.none,
       onSelected: (selected) {
         setState(() {
           _selectedLength = selected ? length : null;
@@ -376,6 +478,7 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
           _selectedTopic = _selectedTopic == topic ? null : topic;
         });
       },
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       itemBuilder: (context) {
         return _allTopics.map((topic) {
           return PopupMenuItem<String>(
@@ -400,6 +503,10 @@ class _BrowsePresentationsScreenState extends State<BrowsePresentationsScreen> {
         backgroundColor: _selectedTopic != null
             ? AppTheme.primaryColor.withOpacity(0.1)
             : null,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        side: BorderSide.none,
       ),
     );
   }

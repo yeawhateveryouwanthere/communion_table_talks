@@ -36,10 +36,11 @@ class PresentationDetailScreen extends StatelessWidget {
             '"${presentation.title}" scheduled for $dateStr',
           ),
           behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           backgroundColor: AppTheme.primaryColor,
         ),
       );
-      // Return true to signal that a presentation was selected
       Navigator.of(context).pop(true);
     }
   }
@@ -49,159 +50,266 @@ class PresentationDetailScreen extends StatelessWidget {
     final lengthColor = AppTheme.lengthColor(presentation.lengthLabel);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Communion Table Talks'),
-      ),
       body: Column(
         children: [
+          // Image header with title info
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/images/header_detail.jpeg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.3),
+                    Colors.black.withOpacity(0.6),
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Back button row
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back,
+                                color: Colors.white),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const Spacer(),
+                          // Length badge in header
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  AppTheme.lengthIcon(presentation.lengthLabel),
+                                  size: 14,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  presentation.lengthLabel,
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                        ],
+                      ),
+                    ),
+
+                    // Title and scripture
+                    Padding(
+                      padding:
+                          const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          presentation.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            height: 1.25,
+                            letterSpacing: -0.2,
+                            shadows: [
+                              Shadow(
+                                offset: Offset(0, 1),
+                                blurRadius: 4,
+                                color: Color(0x88000000),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.menu_book,
+                              size: 16,
+                              color: AppTheme.accentLight,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              presentation.scripturePassage,
+                              style: TextStyle(
+                                color: AppTheme.accentLight,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ),
+
           // Date banner if scheduling
           if (scheduledDate != null)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: AppTheme.accentColor.withOpacity(0.15),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppTheme.accentColor.withOpacity(0.12),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTheme.accentColor.withOpacity(0.2),
+                  ),
+                ),
+              ),
               child: Row(
                 children: [
                   Icon(Icons.calendar_today,
-                      size: 16, color: AppTheme.primaryColor),
+                      size: 15, color: AppTheme.accentDark),
                   const SizedBox(width: 8),
                   Text(
                     'Presenting on ${DateFormat.EEEE().format(scheduledDate!)}, ${DateFormat.yMMMd().format(scheduledDate!)}',
                     style: TextStyle(
                       color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
                   ),
                 ],
               ),
             ),
 
-          // Scrollable content
+          // Scrollable body
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Length badge
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: lengthColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      presentation.lengthLabel,
-                      style: TextStyle(
-                        color: lengthColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  // Body text — the main reading content
+                  _buildBodyText(context),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 32),
 
-                  // Title
-                  Text(
-                    presentation.title,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Scripture passage
+                  // Divider with decorative element
                   Row(
                     children: [
-                      Icon(
-                        Icons.menu_book,
-                        size: 18,
-                        color: AppTheme.accentColor,
+                      Expanded(
+                        child: Container(
+                            height: 1, color: AppTheme.dividerColor),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        presentation.scripturePassage,
-                        style: const TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Icon(
+                          Icons.local_florist,
+                          size: 16,
+                          color: AppTheme.accentColor.withOpacity(0.5),
                         ),
+                      ),
+                      Expanded(
+                        child: Container(
+                            height: 1, color: AppTheme.dividerColor),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 20),
-                  const Divider(color: AppTheme.dividerColor),
-                  const SizedBox(height: 16),
-
-                  // Body text
-                  _buildBodyText(context),
-
                   const SizedBox(height: 24),
-                  const Divider(color: AppTheme.dividerColor),
-                  const SizedBox(height: 16),
 
                   // Suggested Hymns
                   if (presentation.suggestedHymns.isNotEmpty) ...[
-                    Row(
-                      children: [
-                        Icon(Icons.music_note,
-                            size: 20, color: AppTheme.accentColor),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Suggested Hymns',
-                          style:
-                              Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                  ),
-                        ),
-                      ],
-                    ),
+                    _buildSectionLabel(context, 'Suggested Hymns',
+                        Icons.music_note),
                     const SizedBox(height: 12),
-                    ...presentation.suggestedHymns.map((hymn) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('•  ',
-                                style: TextStyle(
-                                  color: AppTheme.accentColor,
-                                  fontSize: 16,
-                                )),
-                            Expanded(
-                              child: Text(
-                                hymn,
-                                style: Theme.of(context).textTheme.bodyLarge,
-                              ),
-                            ),
-                          ],
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentColor.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.accentColor.withOpacity(0.12),
                         ),
-                      );
-                    }),
-                    const SizedBox(height: 16),
-                    const Divider(color: AppTheme.dividerColor),
-                    const SizedBox(height: 16),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children:
+                            presentation.suggestedHymns.map((hymn) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.music_note,
+                                    size: 14,
+                                    color: AppTheme.accentDark
+                                        .withOpacity(0.5)),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    hymn,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.copyWith(
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                   ],
 
                   // Topic tags
-                  Text(
-                    'Topics',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
+                  _buildSectionLabel(context, 'Topics', Icons.label_outline),
+                  const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 6,
                     children: presentation.topicTags.map((tag) {
-                      return Chip(
-                        label: Text(tag),
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          tag,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.primaryColor.withOpacity(0.75),
+                          ),
+                        ),
                       );
                     }).toList(),
                   ),
@@ -216,14 +324,14 @@ class PresentationDetailScreen extends StatelessWidget {
           if (scheduledDate != null)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
+                    color: Colors.black.withOpacity(0.06),
                     offset: const Offset(0, -2),
-                    blurRadius: 8,
+                    blurRadius: 12,
                   ),
                 ],
               ),
@@ -232,10 +340,11 @@ class PresentationDetailScreen extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
                   textStyle: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -252,6 +361,25 @@ class PresentationDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildSectionLabel(
+      BuildContext context, String label, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppTheme.primaryColor.withOpacity(0.6)),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.primaryColor.withOpacity(0.6),
+            letterSpacing: 0.5,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildBodyText(BuildContext context) {
     final paragraphs = presentation.bodyText
         .split(RegExp(r'</?p>'))
@@ -260,10 +388,16 @@ class PresentationDetailScreen extends StatelessWidget {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: paragraphs.map((paragraph) {
+      children: paragraphs.asMap().entries.map((entry) {
+        final index = entry.key;
+        final paragraph = entry.value.trim();
+
+        // First paragraph gets a drop-cap–like larger first line
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: _buildRichParagraph(context, paragraph.trim()),
+          padding: EdgeInsets.only(
+            bottom: index < paragraphs.length - 1 ? 18 : 0,
+          ),
+          child: _buildRichParagraph(context, paragraph),
         );
       }).toList(),
     );
@@ -317,8 +451,11 @@ class PresentationDetailScreen extends StatelessWidget {
 
     return RichText(
       text: TextSpan(
-        style: Theme.of(context).textTheme.bodyLarge,
-        children: spans.isEmpty ? [TextSpan(text: _cleanHtml(html))] : spans,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              height: 1.75,
+            ),
+        children:
+            spans.isEmpty ? [TextSpan(text: _cleanHtml(html))] : spans,
       ),
     );
   }
