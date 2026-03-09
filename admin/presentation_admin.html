@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Communion Table Talks — Admin</title>
+  <style>
+    :root {
+      --burgundy: #6B2D3E;
+      --burgundy-light: #8B4D5E;
+      --gold: #D4A843;
+      --gold-light: #F5E6C8;
+      --cream: #FFF8F0;
+      --text: #2D1F24;
+      --text-light: #6B5D62;
+      --border: #E0D4D8;
+      --success: #2E7D32;
+      --danger: #C62828;
+      --white: #FFFFFF;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    header {
+      background: var(--burgundy);
+      color: var(--white);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    header h1 span { color: var(--gold); }
+    .header-subtitle {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      font-weight: 400;
+    }
+
+    /* Tab Navigation */
+    .tabs {
+      display: flex;
+      background: var(--white);
+      border-bottom: 2px solid var(--border);
+      padding: 0 2rem;
+    }
+    .tab {
+      padding: 0.85rem 1.5rem;
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text-light);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: var(--burgundy); }
+    .tab.active {
+      color: var(--burgundy);
+      border-bottom-color: var(--gold);
+    }
+
+    /* Main Content */
+    .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Form Styles */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--burgundy);
+      font-size: 0.9rem;
+    }
+    .form-group .hint {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-bottom: 0.35rem;
+    }
+    input[type="text"], input[type="date"], select, textarea {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      background: var(--white);
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--burgundy);
+      box-shadow: 0 0 0 3px rgba(107,45,62,0.1);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* Rich Text Editor */
+    .editor-toolbar {
+      display: flex;
+      gap: 0.25rem;
+      padding: 0.5rem;
+      background: #F5F0F2;
+      border: 1.5px solid var(--border);
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      flex-wrap: wrap;
+    }
+    .editor-toolbar button {
+      padding: 0.35rem 0.65rem;
+      border: 1px solid var(--border);
+      background: var(--white);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .editor-toolbar button:hover {
+      background: var(--burgundy);
+      color: var(--white);
+      border-color: var(--burgundy);
+    }
+    .editor-toolbar .separator {
+      width: 1px;
+      background: var(--border);
+      margin: 0 0.25rem;
+    }
+    #bodyEditor {
+      border: 1.5px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      min-height: 300px;
+      padding: 1rem;
+      background: var(--white);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      outline: none;
+    }
+    #bodyEditor:focus {
+      box-shadow: 0 0 0 3px rgba(107,45,62,0.1);
+    }
+    #bodyEditor blockquote {
+      border-left: 3px solid var(--gold);
+      margin: 0.75rem 0;
+      padding: 0.5rem 1rem;
+      background: var(--gold-light);
+      font-style: italic;
+    }
+
+    /* Tags Input */
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.5rem 0.85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--white);
+      min-height: 42px;
+      cursor: text;
+    }
+    .tags-container:focus-within {
+      border-color: var(--burgundy);
+      box-shadow: 0 0 0 3px rgba(107,45,62,0.1);
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: var(--gold-light);
+      color: var(--burgundy);
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .tag .remove {
+      cursor: pointer;
+      font-weight: 700;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+    .tag .remove:hover { opacity: 1; }
+    .tags-input {
+      border: none;
+      outline: none;
+      flex: 1;
+      min-width: 120px;
+      font-size: 0.9rem;
+      padding: 0.15rem 0;
+    }
+
+    /* Hymns List */
+    .hymn-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .hymn-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .hymn-row input { flex: 1; }
+    .btn-remove-hymn {
+      padding: 0.4rem 0.7rem;
+      background: none;
+      border: 1.5px solid var(--danger);
+      color: var(--danger);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    .btn-remove-hymn:hover {
+      background: var(--danger);
+      color: var(--white);
+    }
+    .btn-add-hymn {
+      align-self: flex-start;
+      padding: 0.4rem 0.85rem;
+      background: none;
+      border: 1.5px dashed var(--burgundy);
+      color: var(--burgundy);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+      transition: all 0.15s;
+    }
+    .btn-add-hymn:hover {
+      background: var(--burgundy);
+      color: var(--white);
+      border-style: solid;
+    }
+
+    /* Buttons */
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .btn {
+      padding: 0.7rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: var(--burgundy);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: var(--burgundy-light); }
+    .btn-secondary {
+      background: var(--white);
+      color: var(--burgundy);
+      border: 1.5px solid var(--burgundy);
+    }
+    .btn-secondary:hover { background: #F5F0F2; }
+    .btn-gold {
+      background: var(--gold);
+      color: var(--text);
+    }
+    .btn-gold:hover { background: #C49A35; }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Status Messages */
+    .status {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      font-weight: 500;
+      display: none;
+    }
+    .status.success {
+      display: block;
+      background: #E8F5E9;
+      color: var(--success);
+      border: 1px solid #A5D6A7;
+    }
+    .status.error {
+      display: block;
+      background: #FFEBEE;
+      color: var(--danger);
+      border: 1px solid #EF9A9A;
+    }
+
+    /* Presentations List */
+    .presentations-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .pres-card {
+      background: var(--white);
+      border-radius: 10px;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      transition: box-shadow 0.2s;
+    }
+    .pres-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+    .pres-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
+    }
+    .pres-card h3 {
+      font-size: 1.1rem;
+      color: var(--burgundy);
+      margin-bottom: 0.15rem;
+    }
+    .pres-card .scripture {
+      font-style: italic;
+      color: var(--text-light);
+      font-size: 0.9rem;
+    }
+    .pres-card .summary {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .pres-card .meta {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 0.65rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .length-badge {
+      display: inline-block;
+      padding: 0.15rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .length-brief { background: #E8F5E9; color: #2E7D32; }
+    .length-medium { background: #E3F2FD; color: #1565C0; }
+    .length-substantive { background: #F3E5F5; color: #6A1B9A; }
+    .pres-card .tag-list {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+    .pres-card .tag-small {
+      background: var(--gold-light);
+      color: var(--burgundy);
+      padding: 0.1rem 0.45rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+    }
+    .pres-card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn-small {
+      padding: 0.3rem 0.7rem;
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-small:hover {
+      border-color: var(--burgundy);
+      color: var(--burgundy);
+    }
+    .btn-small.delete {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+    .btn-small.delete:hover {
+      background: var(--danger);
+      color: var(--white);
+    }
+
+    /* Preview */
+    .preview-panel {
+      background: var(--white);
+      border-radius: 10px;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      margin-top: 1rem;
+    }
+    .preview-panel h2 {
+      color: var(--burgundy);
+      font-size: 1.4rem;
+      margin-bottom: 0.25rem;
+    }
+    .preview-panel .preview-scripture {
+      font-style: italic;
+      color: var(--text-light);
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    .preview-panel .preview-body {
+      line-height: 1.8;
+      font-size: 0.95rem;
+    }
+    .preview-panel .preview-body blockquote {
+      border-left: 3px solid var(--gold);
+      margin: 0.75rem 0;
+      padding: 0.5rem 1rem;
+      background: var(--gold-light);
+      font-style: italic;
+    }
+
+    /* Loading & Empty States */
+    .loading, .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-light);
+    }
+    .loading::after {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--burgundy);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: var(--white);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .stat {
+      display: flex;
+      flex-direction: column;
+    }
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--burgundy);
+    }
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Confirm dialog */
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.active { display: flex; }
+    .dialog {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .dialog h3 { color: var(--danger); margin-bottom: 0.75rem; }
+    .dialog p { margin-bottom: 1rem; color: var(--text-light); }
+    .dialog-actions { display: flex; gap: 0.75rem; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1><span>Communion</span> Table Talks</h1>
+    <div class="header-subtitle">Presentation Admin Tool</div>
+  </div>
+  <div id="connectionStatus" style="font-size:0.85rem; opacity:0.8;">Connecting...</div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('compose')">Compose New</button>
+  <button class="tab" onclick="switchTab('library')">Library</button>
+</div>
+
+<!-- COMPOSE TAB -->
+<div id="tab-compose" class="tab-content active">
+  <div class="container">
+    <form id="presentationForm" onsubmit="return false;">
+
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" id="title" placeholder='e.g. "Remembering the Cross"' required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="scripturePassage">Scripture Passage</label>
+          <input type="text" id="scripturePassage" placeholder="e.g. 1 Corinthians 11:23-26" required>
+        </div>
+        <div class="form-group">
+          <label for="length">Length Category</label>
+          <select id="length" required>
+            <option value="brief">Brief (1-2 minutes)</option>
+            <option value="medium" selected>Medium (3-5 minutes)</option>
+            <option value="substantive">Substantive (5+ minutes)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="summary">Summary</label>
+        <div class="hint">A few sentences describing the presentation.</div>
+        <textarea id="summary" rows="3" placeholder="A brief overview of what this presentation covers..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Body Text</label>
+        <div class="hint">The full presentation text. Use the toolbar to format.</div>
+        <div class="editor-toolbar">
+          <button type="button" onclick="formatText('bold')" title="Bold"><b>B</b></button>
+          <button type="button" onclick="formatText('italic')" title="Italic"><i>I</i></button>
+          <button type="button" onclick="formatText('underline')" title="Underline"><u>U</u></button>
+          <div class="separator"></div>
+          <button type="button" onclick="formatBlock('h3')" title="Heading">H</button>
+          <button type="button" onclick="formatBlock('blockquote')" title="Scripture Quote">&ldquo; &rdquo;</button>
+          <div class="separator"></div>
+          <button type="button" onclick="formatText('insertUnorderedList')" title="Bullet List">&#8226; List</button>
+          <button type="button" onclick="formatText('insertOrderedList')" title="Numbered List">1. List</button>
+          <div class="separator"></div>
+          <button type="button" onclick="clearFormatting()" title="Clear Formatting">Clear</button>
+        </div>
+        <div id="bodyEditor" contenteditable="true"></div>
+      </div>
+
+      <div class="form-group">
+        <label>Topic Tags</label>
+        <div class="hint">Press Enter or comma to add a tag.</div>
+        <div class="tags-container" id="tagsContainer" onclick="document.getElementById('tagInput').focus()">
+          <input type="text" class="tags-input" id="tagInput" placeholder="Type a tag...">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Suggested Hymns</label>
+        <div class="hint">Hymn titles that complement this presentation.</div>
+        <div class="hymn-list" id="hymnList">
+          <div class="hymn-row">
+            <input type="text" class="hymn-input" placeholder="e.g. When I Survey the Wondrous Cross">
+          </div>
+        </div>
+        <button type="button" class="btn-add-hymn" onclick="addHymnRow()">+ Add another hymn</button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="datePublished">Date Published</label>
+          <input type="date" id="datePublished">
+        </div>
+        <div></div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-primary" onclick="savePresentation()" id="saveBtn">
+          Save to Firestore
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="previewPresentation()">
+          Preview
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="clearForm()">
+          Clear Form
+        </button>
+      </div>
+
+      <div id="saveStatus" class="status"></div>
+    </form>
+
+    <!-- Preview Panel -->
+    <div id="previewPanel" class="preview-panel" style="display:none;">
+      <h2 id="previewTitle"></h2>
+      <div class="preview-scripture" id="previewScripture"></div>
+      <div style="margin-bottom:0.75rem;">
+        <span class="length-badge" id="previewLength"></span>
+      </div>
+      <p style="color:var(--text-light); margin-bottom:1rem; font-size:0.9rem;" id="previewSummary"></p>
+      <hr style="border:none; border-top:1px solid var(--border); margin-bottom:1rem;">
+      <div class="preview-body" id="previewBody"></div>
+      <div style="margin-top:1.5rem;" id="previewHymns"></div>
+      <div style="margin-top:0.75rem;" id="previewTags"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LIBRARY TAB -->
+<div id="tab-library" class="tab-content">
+  <div class="container">
+    <div class="stats-bar" id="statsBar">
+      <div class="stat">
+        <span class="stat-value" id="statTotal">-</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="statBrief">-</span>
+        <span class="stat-label">Brief</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="statMedium">-</span>
+        <span class="stat-label">Medium</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value" id="statSubstantive">-</span>
+        <span class="stat-label">Substantive</span>
+      </div>
+    </div>
+
+    <div id="presentationsList" class="presentations-list">
+      <div class="loading">Loading presentations</div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<div class="overlay" id="deleteOverlay">
+  <div class="dialog">
+    <h3>Delete Presentation?</h3>
+    <p id="deleteMessage">Are you sure you want to delete this presentation? This cannot be undone.</p>
+    <div class="dialog-actions">
+      <button class="btn btn-secondary" onclick="closeDeleteDialog()">Cancel</button>
+      <button class="btn" style="background:var(--danger);color:white;" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // ==========================================
+  // Firebase Configuration
+  // ==========================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyAsMg0mXxevmFdPlVH6ilvymdryJWpU9pk",
+    authDomain: "communion-table-talks.firebaseapp.com",
+    projectId: "communion-table-talks",
+    storageBucket: "communion-table-talks.firebasestorage.app",
+    messagingSenderId: "6523279108",
+    appId: "1:6523279108:web:2b953ffbc22b272a6b2251"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  document.getElementById('connectionStatus').textContent = 'Connected';
+
+  // ==========================================
+  // State
+  // ==========================================
+  let topicTags = [];
+  let editingId = null;
+  let deleteTargetId = null;
+
+  // ==========================================
+  // Tab Navigation
+  // ==========================================
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    event.target.classList.add('active');
+    if (tabName === 'library') loadPresentations();
+  }
+
+  // ==========================================
+  // Rich Text Editor
+  // ==========================================
+  function formatText(command) {
+    document.execCommand(command, false, null);
+    document.getElementById('bodyEditor').focus();
+  }
+
+  function formatBlock(tag) {
+    document.execCommand('formatBlock', false, '<' + tag + '>');
+    document.getElementById('bodyEditor').focus();
+  }
+
+  function clearFormatting() {
+    document.execCommand('removeFormat', false, null);
+    document.getElementById('bodyEditor').focus();
+  }
+
+  // ==========================================
+  // Topic Tags
+  // ==========================================
+  document.getElementById('tagInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const value = this.value.trim().replace(/,/g, '');
+      if (value && !topicTags.includes(value)) {
+        topicTags.push(value);
+        renderTags();
+      }
+      this.value = '';
+    }
+    if (e.key === 'Backspace' && !this.value && topicTags.length > 0) {
+      topicTags.pop();
+      renderTags();
+    }
+  });
+
+  function renderTags() {
+    const container = document.getElementById('tagsContainer');
+    const input = document.getElementById('tagInput');
+    container.querySelectorAll('.tag').forEach(t => t.remove());
+    topicTags.forEach((tag, i) => {
+      const el = document.createElement('span');
+      el.className = 'tag';
+      el.innerHTML = tag + ' <span class="remove" onclick="removeTag(' + i + ')">&times;</span>';
+      container.insertBefore(el, input);
+    });
+  }
+
+  function removeTag(index) {
+    topicTags.splice(index, 1);
+    renderTags();
+  }
+
+  // ==========================================
+  // Hymn Rows
+  // ==========================================
+  function addHymnRow() {
+    const list = document.getElementById('hymnList');
+    const row = document.createElement('div');
+    row.className = 'hymn-row';
+    row.innerHTML = '<input type="text" class="hymn-input" placeholder="e.g. The Old Rugged Cross">' +
+      '<button type="button" class="btn-remove-hymn" onclick="this.parentElement.remove()">&times;</button>';
+    list.appendChild(row);
+  }
+
+  function getHymns() {
+    return Array.from(document.querySelectorAll('.hymn-input'))
+      .map(input => input.value.trim())
+      .filter(v => v.length > 0);
+  }
+
+  // ==========================================
+  // Preview
+  // ==========================================
+  function previewPresentation() {
+    const panel = document.getElementById('previewPanel');
+    panel.style.display = 'block';
+
+    document.getElementById('previewTitle').textContent = document.getElementById('title').value || 'Untitled';
+    document.getElementById('previewScripture').textContent = document.getElementById('scripturePassage').value;
+    document.getElementById('previewSummary').textContent = document.getElementById('summary').value;
+    document.getElementById('previewBody').innerHTML = document.getElementById('bodyEditor').innerHTML;
+
+    const len = document.getElementById('length').value;
+    const badge = document.getElementById('previewLength');
+    badge.textContent = len.charAt(0).toUpperCase() + len.slice(1);
+    badge.className = 'length-badge length-' + len;
+
+    const hymns = getHymns();
+    const hymnsDiv = document.getElementById('previewHymns');
+    if (hymns.length > 0) {
+      hymnsDiv.innerHTML = '<strong style="color:var(--burgundy)">Suggested Hymns:</strong> ' + hymns.join(', ');
+    } else {
+      hymnsDiv.innerHTML = '';
+    }
+
+    const tagsDiv = document.getElementById('previewTags');
+    if (topicTags.length > 0) {
+      tagsDiv.innerHTML = topicTags.map(t => '<span class="tag-small" style="background:var(--gold-light);color:var(--burgundy);padding:0.15rem 0.5rem;border-radius:12px;font-size:0.8rem;margin-right:0.25rem;">' + t + '</span>').join('');
+    } else {
+      tagsDiv.innerHTML = '';
+    }
+
+    panel.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ==========================================
+  // Save to Firestore
+  // ==========================================
+  async function savePresentation() {
+    const title = document.getElementById('title').value.trim();
+    const scripture = document.getElementById('scripturePassage').value.trim();
+    const summary = document.getElementById('summary').value.trim();
+    const bodyText = document.getElementById('bodyEditor').innerHTML.trim();
+    const length = document.getElementById('length').value;
+    const hymns = getHymns();
+    const dateVal = document.getElementById('datePublished').value;
+    const datePublished = dateVal ? new Date(dateVal + 'T00:00:00').toISOString() : new Date().toISOString();
+
+    if (!title || !scripture || !bodyText) {
+      showStatus('Please fill in at least the title, scripture passage, and body text.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = editingId ? 'Updating...' : 'Saving...';
+
+    const data = {
+      title, scripturePassage: scripture, bodyText, summary,
+      topicTags, length, suggestedHymns: hymns, datePublished
+    };
+
+    try {
+      if (editingId) {
+        await db.collection('presentations').doc(editingId).update(data);
+        showStatus('Presentation updated successfully!', 'success');
+        editingId = null;
+        btn.textContent = 'Save to Firestore';
+      } else {
+        const docRef = await db.collection('presentations').add(data);
+        showStatus('Presentation saved! ID: ' + docRef.id, 'success');
+      }
+      // Don't clear form so user can keep making edits if needed
+    } catch (error) {
+      showStatus('Error saving: ' + error.message, 'error');
+    }
+
+    btn.disabled = false;
+    if (!editingId) btn.textContent = 'Save to Firestore';
+  }
+
+  function showStatus(message, type) {
+    const status = document.getElementById('saveStatus');
+    status.textContent = message;
+    status.className = 'status ' + type;
+    setTimeout(() => { status.style.display = 'none'; status.className = 'status'; }, 5000);
+  }
+
+  // ==========================================
+  // Load Presentations (Library Tab)
+  // ==========================================
+  async function loadPresentations() {
+    const list = document.getElementById('presentationsList');
+    list.innerHTML = '<div class="loading">Loading presentations</div>';
+
+    try {
+      const snapshot = await db.collection('presentations').orderBy('datePublished', 'desc').get();
+      const presentations = [];
+      snapshot.forEach(doc => presentations.push({ id: doc.id, ...doc.data() }));
+
+      // Update stats
+      document.getElementById('statTotal').textContent = presentations.length;
+      document.getElementById('statBrief').textContent = presentations.filter(p => p.length === 'brief').length;
+      document.getElementById('statMedium').textContent = presentations.filter(p => p.length === 'medium').length;
+      document.getElementById('statSubstantive').textContent = presentations.filter(p => p.length === 'substantive').length;
+
+      if (presentations.length === 0) {
+        list.innerHTML = '<div class="empty-state">No presentations yet. Go to the Compose tab to create your first one!</div>';
+        return;
+      }
+
+      list.innerHTML = presentations.map(p => {
+        const tags = (p.topicTags || []).map(t => '<span class="tag-small">' + t + '</span>').join('');
+        const lenClass = 'length-' + (p.length || 'medium');
+        const lenLabel = (p.length || 'medium').charAt(0).toUpperCase() + (p.length || 'medium').slice(1);
+        const date = p.datePublished ? new Date(p.datePublished).toLocaleDateString() : '';
+
+        return '<div class="pres-card">' +
+          '<div class="pres-card-header">' +
+            '<div>' +
+              '<h3>' + (p.title || 'Untitled') + '</h3>' +
+              '<div class="scripture">' + (p.scripturePassage || '') + '</div>' +
+            '</div>' +
+            '<div class="pres-card-actions">' +
+              '<button class="btn-small" onclick="editPresentation(\'' + p.id + '\')">Edit</button>' +
+              '<button class="btn-small delete" onclick="openDeleteDialog(\'' + p.id + '\', \'' + (p.title || '').replace(/'/g, "\\'") + '\')">Delete</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="summary">' + (p.summary || '') + '</div>' +
+          '<div class="meta">' +
+            '<span class="length-badge ' + lenClass + '">' + lenLabel + '</span>' +
+            (date ? '<span style="font-size:0.8rem;color:var(--text-light);">' + date + '</span>' : '') +
+            '<div class="tag-list">' + tags + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+
+    } catch (error) {
+      list.innerHTML = '<div class="empty-state" style="color:var(--danger);">Error loading: ' + error.message + '</div>';
+    }
+  }
+
+  // ==========================================
+  // Edit Presentation
+  // ==========================================
+  async function editPresentation(id) {
+    try {
+      const doc = await db.collection('presentations').doc(id).get();
+      if (!doc.exists) { alert('Presentation not found.'); return; }
+
+      const p = doc.data();
+      editingId = id;
+
+      document.getElementById('title').value = p.title || '';
+      document.getElementById('scripturePassage').value = p.scripturePassage || '';
+      document.getElementById('summary').value = p.summary || '';
+      document.getElementById('bodyEditor').innerHTML = p.bodyText || '';
+      document.getElementById('length').value = p.length || 'medium';
+
+      if (p.datePublished) {
+        const d = new Date(p.datePublished);
+        document.getElementById('datePublished').value = d.toISOString().split('T')[0];
+      }
+
+      // Set tags
+      topicTags = p.topicTags || [];
+      renderTags();
+
+      // Set hymns
+      const hymnList = document.getElementById('hymnList');
+      hymnList.innerHTML = '';
+      const hymns = p.suggestedHymns || [];
+      if (hymns.length === 0) hymns.push('');
+      hymns.forEach((h, i) => {
+        const row = document.createElement('div');
+        row.className = 'hymn-row';
+        row.innerHTML = '<input type="text" class="hymn-input" value="' + h.replace(/"/g, '&quot;') + '" placeholder="e.g. The Old Rugged Cross">' +
+          (i > 0 ? '<button type="button" class="btn-remove-hymn" onclick="this.parentElement.remove()">&times;</button>' : '');
+        hymnList.appendChild(row);
+      });
+
+      document.getElementById('saveBtn').textContent = 'Update Presentation';
+      switchTabDirect('compose');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (error) {
+      alert('Error loading presentation: ' + error.message);
+    }
+  }
+
+  function switchTabDirect(tabName) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+    document.querySelectorAll('.tab')[tabName === 'compose' ? 0 : 1].classList.add('active');
+  }
+
+  // ==========================================
+  // Delete Presentation
+  // ==========================================
+  function openDeleteDialog(id, title) {
+    deleteTargetId = id;
+    document.getElementById('deleteMessage').textContent = 'Are you sure you want to delete "' + title + '"? This cannot be undone.';
+    document.getElementById('deleteOverlay').classList.add('active');
+  }
+
+  function closeDeleteDialog() {
+    deleteTargetId = null;
+    document.getElementById('deleteOverlay').classList.remove('active');
+  }
+
+  async function confirmDelete() {
+    if (!deleteTargetId) return;
+    try {
+      await db.collection('presentations').doc(deleteTargetId).delete();
+      closeDeleteDialog();
+      loadPresentations();
+    } catch (error) {
+      alert('Error deleting: ' + error.message);
+      closeDeleteDialog();
+    }
+  }
+
+  // ==========================================
+  // Clear Form
+  // ==========================================
+  function clearForm() {
+    editingId = null;
+    document.getElementById('presentationForm').reset();
+    document.getElementById('bodyEditor').innerHTML = '';
+    topicTags = [];
+    renderTags();
+    document.getElementById('hymnList').innerHTML =
+      '<div class="hymn-row"><input type="text" class="hymn-input" placeholder="e.g. When I Survey the Wondrous Cross"></div>';
+    document.getElementById('saveBtn').textContent = 'Save to Firestore';
+    document.getElementById('previewPanel').style.display = 'none';
+    document.getElementById('saveStatus').style.display = 'none';
+    document.getElementById('datePublished').value = new Date().toISOString().split('T')[0];
+  }
+
+  // Set today's date as default
+  document.getElementById('datePublished').value = new Date().toISOString().split('T')[0];
+</script>
+
+</body>
+</html>
