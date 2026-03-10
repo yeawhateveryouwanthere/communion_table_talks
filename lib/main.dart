@@ -13,9 +13,21 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // Seed Firestore with sample data (only runs once if empty)
-  await seedFirestore();
+
+  // Launch the app immediately — don't block on Firestore seeding
   runApp(const CommunionTableTalksApp());
+
+  // Run seeding in the background (non-blocking) with a timeout
+  try {
+    await seedFirestore().timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        print('Firestore seeding timed out — will retry next launch.');
+      },
+    );
+  } catch (e) {
+    print('Firestore seeding error (non-fatal): $e');
+  }
 }
 
 class CommunionTableTalksApp extends StatelessWidget {
