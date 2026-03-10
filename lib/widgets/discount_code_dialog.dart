@@ -56,11 +56,11 @@ class _DiscountCodeDialogState extends State<DiscountCodeDialog> {
     });
 
     final subProvider = context.read<SubscriptionProvider>();
-    final success = await subProvider.applyDiscountCode(code);
+    final result = await subProvider.applyDiscountCode(code);
 
     if (!mounted) return;
 
-    if (success) {
+    if (result == 'success') {
       Navigator.pop(context, true);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -72,9 +72,21 @@ class _DiscountCodeDialogState extends State<DiscountCodeDialog> {
         ),
       );
     } else {
+      String message;
+      switch (result) {
+        case 'fully_redeemed':
+          message =
+              'This code has already been used the maximum number of times.';
+          break;
+        case 'not_found':
+          message = 'Invalid or expired code. Please try again.';
+          break;
+        default:
+          message = 'Something went wrong. Please try again later.';
+      }
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Invalid or expired code. Please try again.';
+        _errorMessage = message;
       });
     }
   }

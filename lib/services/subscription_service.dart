@@ -77,8 +77,12 @@ class SubscriptionService {
   }
 
   /// Apply a discount code for the current user.
-  /// Returns true if successful, false if code is invalid or expired.
-  static Future<bool> applyDiscountCode(String uid, String code) async {
+  /// Returns a result string:
+  ///   'success' — code applied
+  ///   'not_found' — code doesn't exist or is inactive
+  ///   'fully_redeemed' — code has reached its max redemptions
+  ///   'error' — unexpected failure
+  static Future<String> applyDiscountCode(String uid, String code) async {
     try {
       // Look up the code in Firestore
       final codeQuery = await _db
@@ -88,41 +92,73 @@ class SubscriptionService {
           .limit(1)
           .get();
 
-      if (codeQuery.docs.isEmpty) return false;
+      if (codeQuery.docs.isEmpty) return 'not_found';
 
-      final codeData = codeQuery.docs.first.data();
-      final durationType = codeData['durationType'] as String? ?? 'month';
+      final codeDoc = codeQuery.docs.first;
+      final codeRef = codeDoc.reference;
 
-      // Calculate expiry based on duration type
-      DateTime expiry;
-      switch (durationType) {
-        case 'permanent':
-          expiry = DateTime(2099, 12, 31);
-          break;
-        case 'month':
-          expiry = DateTime.now().add(const Duration(days: 30));
-          break;
-        case 'threeMonths':
-          expiry = DateTime.now().add(const Duration(days: 90));
-          break;
-        case 'year':
-          expiry = DateTime.now().add(const Duration(days: 365));
-          break;
-        default:
-          expiry = DateTime.now().add(const Duration(days: 30));
-      }
+      // Use a transaction to atomically check + increment redemptions
+      final result = await _db.runTransaction<String>((transaction) async {
+        final freshSnapshot = await transaction.get(codeRef);
+        if (!freshSnapshot.exists) return 'not_found';
 
-      // Save to user's document
-      await _db.collection('users').doc(uid).set({
-        'discountCodeApplied': code.toUpperCase(),
-        'discountCodeExpiry': expiry.toIso8601String(),
-        'lastUpdated': DateTime.now().toIso8601String(),
-      }, SetOptions(merge: true));
+        final codeData = freshSnapshot.data()!;
 
-      return true;
+        // Check if code is still active
+        if (codeData['isActive'] != true) return 'not_found';
+
+        // Check redemption limits
+        final maxRedemptions = codeData['maxRedemptions'] as int? ?? 5;
+        final timesRedeemed = codeData['timesRedeemed'] as int? ?? 0;
+
+        if (timesRedeemed >= maxRedemptions) return 'fully_redeemed';
+
+        final durationType = codeData['durationType'] as String? ?? 'month';
+
+        // Calculate expiry based on duration type
+        DateTime expiry;
+        switch (durationType) {
+          case 'permanent':
+            expiry = DateTime(2099, 12, 31);
+            break;
+          case 'month':
+            expiry = DateTime.now().add(const Duration(days: 30));
+            break;
+          case 'threeMonths':
+            expiry = DateTime.now().add(const Duration(days: 90));
+            break;
+          case 'year':
+            expiry = DateTime.now().add(const Duration(days: 365));
+            break;
+          default:
+            expiry = DateTime.now().add(const Duration(days: 30));
+        }
+
+        // Increment the redemption counter on the code
+        transaction.update(codeRef, {
+          'timesRedeemed': timesRedeemed + 1,
+          // Auto-deactivate the code if this was the last redemption
+          if (timesRedeemed + 1 >= maxRedemptions) 'isActive': false,
+        });
+
+        // Save to user's document
+        transaction.set(
+          _db.collection('users').doc(uid),
+          {
+            'discountCodeApplied': code.toUpperCase(),
+            'discountCodeExpiry': expiry.toIso8601String(),
+            'lastUpdated': DateTime.now().toIso8601String(),
+          },
+          SetOptions(merge: true),
+        );
+
+        return 'success';
+      });
+
+      return result;
     } catch (e) {
       print('Error applying discount code: $e');
-      return false;
+      return 'error';
     }
   }
 }

@@ -60,8 +60,9 @@ class SubscriptionProvider extends ChangeNotifier {
   }
 
   /// Apply a discount code for the current user.
-  Future<bool> applyDiscountCode(String code) async {
-    if (_currentUid == null) return false;
+  /// Returns a result string: 'success', 'not_found', 'fully_redeemed', or 'error'.
+  Future<String> applyDiscountCode(String code) async {
+    if (_currentUid == null) return 'error';
     return await SubscriptionService.applyDiscountCode(_currentUid!, code);
   }
 
