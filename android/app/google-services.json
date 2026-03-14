@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "6523279108-kvami7rc7c52ra515eu8ajtla6dg8vs7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.communion_table_talks",
+            "certificate_hash": "f3536e2466e9771d0d8a4e6bbefe6fe174411cdc"
+          }
+        },
+        {
           "client_id": "6523279108-sg29jr8mpkl1prts4u5a4p98ustheabu.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -57,6 +65,30 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "6523279108-16nstlus6rl48u1pelq67gkj9nl5nd0c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stillstandingstudios.communiontabletalks",
+            "certificate_hash": "205f097328a1b4f993e29753b2b055c59d346e35"
+          }
+        },
+        {
+          "client_id": "6523279108-5um3r173qb9btt0b928p3mife5o80vni.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stillstandingstudios.communiontabletalks",
+            "certificate_hash": "bec6051842400ab5abb64edca11ba71d16a98304"
+          }
+        },
+        {
+          "client_id": "6523279108-ad0cqn0dr5op29f8iqpebevdldtfnvf4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stillstandingstudios.communiontabletalks",
+            "certificate_hash": "f3536e2466e9771d0d8a4e6bbefe6fe174411cdc"
+          }
+        },
         {
           "client_id": "6523279108-m8n848flm5nu4bs7ml560rudu4nejp53.apps.googleusercontent.com",
           "client_type": 3

@@ -8,7 +8,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Automatically creates a Firestore user document on first sign-in.
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
-  static final GoogleSignIn _googleSignIn = GoogleSignIn();
+  static final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId: '6523279108-m8n848flm5nu4bs7ml560rudu4nejp53.apps.googleusercontent.com',
+  );
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   /// The currently signed-in user, or null.
@@ -35,7 +37,7 @@ class AuthService {
       return userCredential.user;
     } catch (e) {
       print('Google sign-in error: $e');
-      return null;
+      throw 'Google Sign-In failed. Please try again.';
     }
   }
 
