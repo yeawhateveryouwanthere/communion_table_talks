@@ -4,18 +4,41 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/presentation.dart';
 import '../models/user_subscription.dart';
 import '../services/subscription_service.dart';
+import '../services/purchase_service.dart';
 
 /// Provides subscription state to the widget tree via Provider.
 ///
 /// Listens to the user's Firestore document for real-time subscription
-/// status updates and notifies the UI when access changes.
+/// status updates and integrates with Google Play Billing via PurchaseService.
 class SubscriptionProvider extends ChangeNotifier {
   UserSubscription? _subscription;
   StreamSubscription<DocumentSnapshot>? _firestoreSubscription;
   String? _currentUid;
 
+  final PurchaseService _purchaseService = PurchaseService();
+
   UserSubscription? get subscription => _subscription;
   bool get isSubscribed => _subscription?.isSubscribed ?? false;
+
+  /// Whether the Google Play store is available.
+  bool get storeAvailable => _purchaseService.storeAvailable;
+
+  /// Whether a purchase is currently being processed.
+  bool get purchasePending => _purchaseService.purchasePending;
+
+  /// Error from the last purchase attempt, if any.
+  String? get purchaseError => _purchaseService.error;
+
+  /// Product details loaded from the store.
+  List get products => _purchaseService.products;
+
+  /// Initialize the purchase service. Call once at app startup.
+  Future<void> initializePurchases() async {
+    _purchaseService.onStateChanged = () {
+      notifyListeners();
+    };
+    await _purchaseService.initialize();
+  }
 
   /// Start listening to a user's subscription status.
   /// Call this when a user signs in.
@@ -66,9 +89,28 @@ class SubscriptionProvider extends ChangeNotifier {
     return await SubscriptionService.applyDiscountCode(_currentUid!, code);
   }
 
+  /// Buy a subscription plan via Google Play.
+  /// [productId] should be kMonthlyProductId or kYearlyProductId.
+  Future<bool> buySubscription(String productId) async {
+    return await _purchaseService.buySubscription(productId);
+  }
+
+  /// Restore previous purchases from Google Play.
+  Future<void> restorePurchases() async {
+    await _purchaseService.restorePurchases();
+  }
+
+  /// Get the display price for a product (from Google Play).
+  /// Returns null if the product isn't loaded yet.
+  String? getProductPrice(String productId) {
+    final product = _purchaseService.getProduct(productId);
+    return product?.price;
+  }
+
   @override
   void dispose() {
     _firestoreSubscription?.cancel();
+    _purchaseService.dispose();
     super.dispose();
   }
 }

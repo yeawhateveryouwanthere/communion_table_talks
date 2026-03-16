@@ -46,13 +46,26 @@ class CommunionTableTalksApp extends StatelessWidget {
 }
 
 /// Listens to auth changes and connects the SubscriptionProvider
-/// to the current user.
-class _AppWithAuthListener extends StatelessWidget {
+/// to the current user. Also initializes in-app purchases.
+class _AppWithAuthListener extends StatefulWidget {
+  @override
+  State<_AppWithAuthListener> createState() => _AppWithAuthListenerState();
+}
+
+class _AppWithAuthListenerState extends State<_AppWithAuthListener> {
+  bool _purchasesInitialized = false;
+
   @override
   Widget build(BuildContext context) {
     // Watch auth state and sync subscription listener
     final authProvider = context.watch<app_auth.AuthProvider>();
     final subscriptionProvider = context.read<SubscriptionProvider>();
+
+    // Initialize in-app purchases once
+    if (!_purchasesInitialized) {
+      _purchasesInitialized = true;
+      subscriptionProvider.initializePurchases();
+    }
 
     if (authProvider.isSignedIn) {
       subscriptionProvider.listenToUser(authProvider.user!.uid);

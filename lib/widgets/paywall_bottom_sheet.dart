@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart' as app_auth;
+import '../providers/subscription_provider.dart';
 import '../screens/auth_screen.dart';
+import '../services/purchase_service.dart';
 import '../theme/app_theme.dart';
 import 'discount_code_dialog.dart';
 
 /// A bottom sheet that presents subscription options and discount code entry.
 ///
 /// Shows the two subscription tiers ($5/month, $49/year) and a link
-/// to enter a discount code. For now, purchasing redirects to the
-/// subscription screen once Google Play Billing is configured.
+/// to enter a discount code. Connects to Google Play Billing for purchases.
 class PaywallBottomSheet extends StatelessWidget {
   const PaywallBottomSheet({super.key});
 
@@ -26,6 +27,11 @@ class PaywallBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<app_auth.AuthProvider>();
+    final subProvider = context.watch<SubscriptionProvider>();
+
+    // Get real prices from Google Play if available
+    final monthlyPrice = subProvider.getProductPrice(kMonthlyProductId) ?? '\$4.99';
+    final yearlyPrice = subProvider.getProductPrice(kYearlyProductId) ?? '\$49.99';
 
     return Container(
       decoration: const BoxDecoration(
@@ -87,27 +93,41 @@ class PaywallBottomSheet extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Subscription options
-          _buildPlanOption(
-            context,
-            title: 'Monthly',
-            price: '\$4.99',
-            period: '/month',
-            isPopular: false,
-            onTap: () => _handleSubscribe(context, 'monthly', authProvider),
-          ),
+          // Loading indicator when purchase is processing
+          if (subProvider.purchasePending) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 12),
+                  Text('Processing purchase...'),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Subscription options
+            _buildPlanOption(
+              context,
+              title: 'Monthly',
+              price: monthlyPrice,
+              period: '/month',
+              isPopular: false,
+              onTap: () => _handleSubscribe(context, kMonthlyProductId, authProvider, subProvider),
+            ),
 
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          _buildPlanOption(
-            context,
-            title: 'Yearly',
-            price: '\$49.99',
-            period: '/year',
-            savings: 'Save 17%',
-            isPopular: true,
-            onTap: () => _handleSubscribe(context, 'yearly', authProvider),
-          ),
+            _buildPlanOption(
+              context,
+              title: 'Yearly',
+              price: yearlyPrice,
+              period: '/year',
+              savings: 'Save 17%',
+              isPopular: true,
+              onTap: () => _handleSubscribe(context, kYearlyProductId, authProvider, subProvider),
+            ),
+          ],
 
           const SizedBox(height: 20),
 
@@ -266,8 +286,9 @@ class PaywallBottomSheet extends StatelessWidget {
 
   void _handleSubscribe(
     BuildContext context,
-    String plan,
+    String productId,
     app_auth.AuthProvider authProvider,
+    SubscriptionProvider subProvider,
   ) async {
     if (!authProvider.isSignedIn) {
       // Need to sign in first
@@ -278,22 +299,40 @@ class PaywallBottomSheet extends StatelessWidget {
       if (result != true) return;
     }
 
-    // TODO: Phase 3 completion — integrate with Google Play Billing
-    // For now, show a message that billing is being set up
-    if (context.mounted) {
-      Navigator.pop(context);
+    if (!context.mounted) return;
+
+    // Check if store is available
+    if (!subProvider.storeAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            'In-app purchases will be available once the app is published to Google Play. Try a discount code in the meantime!',
+          content: const Text(
+            'In-app purchases are not available on this device. Try a discount code instead!',
           ),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 4),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           backgroundColor: AppTheme.primaryColor,
         ),
       );
+      return;
+    }
+
+    // Initiate the purchase — Google Play handles the UI from here
+    final success = await subProvider.buySubscription(productId);
+
+    if (!success && context.mounted) {
+      final error = subProvider.purchaseError;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
     }
   }
 }

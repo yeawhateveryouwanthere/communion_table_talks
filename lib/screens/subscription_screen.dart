@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart' as app_auth;
 import '../providers/subscription_provider.dart';
+import '../services/purchase_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/discount_code_dialog.dart';
 import 'auth_screen.dart';
@@ -111,30 +112,59 @@ class SubscriptionScreen extends StatelessWidget {
 
               const SizedBox(height: 16),
 
-              // Monthly
-              _buildPlanCard(
-                context,
-                title: 'Monthly',
-                price: '\$4.99/month',
-                description: 'Cancel anytime. Full access to all presentations.',
-                icon: Icons.calendar_today,
-                onTap: () => _handlePurchase(context, 'monthly', authProvider),
+              // Show loading indicator during purchase
+              if (subProvider.purchasePending) ...[
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Column(
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 12),
+                      Text('Processing purchase...'),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                // Monthly — use real price from Google Play if available
+                _buildPlanCard(
+                  context,
+                  title: 'Monthly',
+                  price: '${subProvider.getProductPrice(kMonthlyProductId) ?? '\$4.99'}/month',
+                  description: 'Cancel anytime. Full access to all presentations.',
+                  icon: Icons.calendar_today,
+                  onTap: () => _handlePurchase(context, kMonthlyProductId, authProvider, subProvider),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Yearly — use real price from Google Play if available
+                _buildPlanCard(
+                  context,
+                  title: 'Yearly',
+                  price: '${subProvider.getProductPrice(kYearlyProductId) ?? '\$49.99'}/year',
+                  description: 'Save 17% — best value for regular use.',
+                  icon: Icons.calendar_month,
+                  isRecommended: true,
+                  onTap: () => _handlePurchase(context, kYearlyProductId, authProvider, subProvider),
+                ),
+              ],
+
+              const SizedBox(height: 16),
+
+              // Restore purchases link
+              TextButton(
+                onPressed: () => subProvider.restorePurchases(),
+                child: Text(
+                  'Restore Previous Purchase',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textSecondary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
               ),
 
-              const SizedBox(height: 12),
-
-              // Yearly
-              _buildPlanCard(
-                context,
-                title: 'Yearly',
-                price: '\$49.99/year',
-                description: 'Save 17% — best value for regular use.',
-                icon: Icons.calendar_month,
-                isRecommended: true,
-                onTap: () => _handlePurchase(context, 'yearly', authProvider),
-              ),
-
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Divider
               Row(
@@ -374,8 +404,9 @@ class SubscriptionScreen extends StatelessWidget {
 
   void _handlePurchase(
     BuildContext context,
-    String plan,
+    String productId,
     app_auth.AuthProvider authProvider,
+    SubscriptionProvider subProvider,
   ) async {
     if (!authProvider.isSignedIn) {
       await Navigator.push<bool>(
@@ -385,22 +416,40 @@ class SubscriptionScreen extends StatelessWidget {
       return;
     }
 
-    // TODO: Integrate with Google Play Billing / in_app_purchase package
-    // This will be connected once the app is published to Google Play
-    // and subscription products are created in the Play Console.
-    if (context.mounted) {
+    if (!context.mounted) return;
+
+    // Check if store is available
+    if (!subProvider.storeAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
-            'In-app purchases will be available once the app is on Google Play. Try a discount code in the meantime!',
+            'In-app purchases are not available on this device. Try a discount code instead!',
           ),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 4),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           backgroundColor: AppTheme.primaryColor,
         ),
       );
+      return;
+    }
+
+    // Initiate the purchase — Google Play handles the UI from here
+    final success = await subProvider.buySubscription(productId);
+
+    if (!success && context.mounted) {
+      final error = subProvider.purchaseError;
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
     }
   }
 }
