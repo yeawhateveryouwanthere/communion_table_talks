@@ -174,6 +174,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  String _timeForLabel(String label) {
+    switch (label) {
+      case 'Brief':
+        return '2–3 min';
+      case 'Medium':
+        return '4–6 min';
+      case 'Substantive':
+        return '7–10 min';
+      default:
+        return '';
+    }
+  }
+
   Widget _buildHistoryCard(ScheduledPresentation item) {
     final dateFormatted = DateFormat.yMMMd().format(item.scheduledDate);
     final dayOfWeek = DateFormat.EEEE().format(item.scheduledDate);
@@ -281,7 +294,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              item.lengthLabel,
+                              '${item.lengthLabel} · ${_timeForLabel(item.lengthLabel)}',
                               style: TextStyle(
                                 color: lengthColor,
                                 fontSize: 11,

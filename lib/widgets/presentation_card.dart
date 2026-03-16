@@ -64,7 +64,7 @@ class PresentationCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            presentation.lengthLabel,
+                            presentation.lengthWithTime,
                             style: TextStyle(
                               color: lengthColor,
                               fontSize: 12,

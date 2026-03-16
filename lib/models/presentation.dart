@@ -46,6 +46,21 @@ class Presentation {
     }
   }
 
+  /// Estimated time range for delivering this presentation.
+  String get timeEstimate {
+    switch (length) {
+      case PresentationLength.brief:
+        return '2–3 min';
+      case PresentationLength.medium:
+        return '4–6 min';
+      case PresentationLength.substantive:
+        return '7–10 min';
+    }
+  }
+
+  /// Length label with time estimate, e.g. "Brief · 2–3 min".
+  String get lengthWithTime => '$lengthLabel · $timeEstimate';
+
   /// Creates a Presentation from a Firestore document map.
   factory Presentation.fromMap(Map<String, dynamic> map, String documentId) {
     return Presentation(

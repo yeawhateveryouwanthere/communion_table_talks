@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import 'select_date_screen.dart';
 import 'presentation_detail_screen.dart';
 import 'browse_presentations_screen.dart';
+import 'collections_screen.dart';
 
 class MyPresentationsScreen extends StatefulWidget {
   const MyPresentationsScreen({super.key});
@@ -304,6 +305,31 @@ class _MyPresentationsScreenState extends State<MyPresentationsScreen> {
               icon: const Icon(Icons.search, size: 18),
               label: const Text('Browse presentations'),
             ),
+            const SizedBox(height: 12),
+            // Collections button
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CollectionsScreen(),
+                  ),
+                );
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.accentDark,
+                side: BorderSide(
+                  color: AppTheme.accentColor.withOpacity(0.3),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              icon: const Icon(Icons.collections_bookmark, size: 18),
+              label: const Text('Seasonal & topical collections'),
+            ),
           ],
         ),
       ),
@@ -330,22 +356,39 @@ class _MyPresentationsScreenState extends State<MyPresentationsScreen> {
           ...past.map((item) => _buildScheduledCard(item, isUpcoming: false)),
         ],
 
-        // Browse link at bottom
+        // Browse and Collections links at bottom
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
           child: Center(
-            child: TextButton.icon(
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const BrowsePresentationsScreen(),
-                  ),
-                );
-                _loadScheduled();
-              },
-              icon: const Icon(Icons.menu_book, size: 18),
-              label: const Text('Browse all presentations'),
+            child: Column(
+              children: [
+                TextButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BrowsePresentationsScreen(),
+                      ),
+                    );
+                    _loadScheduled();
+                  },
+                  icon: const Icon(Icons.menu_book, size: 18),
+                  label: const Text('Browse all presentations'),
+                ),
+                const SizedBox(height: 4),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CollectionsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.collections_bookmark, size: 18),
+                  label: const Text('Seasonal & topical collections'),
+                ),
+              ],
             ),
           ),
         ),
@@ -382,6 +425,19 @@ class _MyPresentationsScreenState extends State<MyPresentationsScreen> {
         ],
       ),
     );
+  }
+
+  String _timeForLabel(String label) {
+    switch (label) {
+      case 'Brief':
+        return '2–3 min';
+      case 'Medium':
+        return '4–6 min';
+      case 'Substantive':
+        return '7–10 min';
+      default:
+        return '';
+    }
   }
 
   Widget _buildScheduledCard(ScheduledPresentation item,
@@ -504,7 +560,7 @@ class _MyPresentationsScreenState extends State<MyPresentationsScreen> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              item.lengthLabel,
+                              '${item.lengthLabel} · ${_timeForLabel(item.lengthLabel)}',
                               style: TextStyle(
                                 color: lengthColor,
                                 fontSize: 11,

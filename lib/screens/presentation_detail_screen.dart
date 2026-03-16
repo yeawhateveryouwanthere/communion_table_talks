@@ -5,6 +5,7 @@ import '../models/scheduled_presentation.dart';
 import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/paywall_bottom_sheet.dart';
+import 'presenter_view_screen.dart';
 
 class PresentationDetailScreen extends StatelessWidget {
   final Presentation presentation;
@@ -108,7 +109,7 @@ class PresentationDetailScreen extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 5),
                                 Text(
-                                  presentation.lengthLabel,
+                                  presentation.lengthWithTime,
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.9),
                                     fontSize: 13,
@@ -250,7 +251,45 @@ class PresentationDetailScreen extends StatelessWidget {
                     _buildBodyText(context),
 
                   if (!isLocked) ...[
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
+
+                  // Presenter's View button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PresenterViewScreen(
+                              presentation: presentation,
+                            ),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: const Color(0xFF1A1A1A),
+                        side: BorderSide(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      icon: const Icon(Icons.tv, size: 20),
+                      label: const Text(
+                        'Presenter\'s View',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
 
                   // Divider with decorative element
                   Row(

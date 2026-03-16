@@ -238,13 +238,47 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  String _timeForLabel(String label) {
+    switch (label) {
+      case 'Brief':
+        return '2–3 min';
+      case 'Medium':
+        return '4–6 min';
+      case 'Substantive':
+        return '7–10 min';
+      default:
+        return '';
+    }
+  }
+
   Widget _buildLengthChip(String label, PresentationLength length) {
     final isSelected = _selectedLength == length;
+    final color = AppTheme.lengthColor(label);
     return FilterChip(
-      label: Text(label),
+      label: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            _timeForLabel(label),
+            style: TextStyle(
+              fontSize: 10,
+              color: isSelected
+                  ? color.withOpacity(0.8)
+                  : Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
+            ),
+          ),
+        ],
+      ),
       selected: isSelected,
-      selectedColor: AppTheme.lengthColor(label).withOpacity(0.2),
-      checkmarkColor: AppTheme.lengthColor(label),
+      selectedColor: color.withOpacity(0.2),
+      checkmarkColor: color,
       onSelected: (selected) {
         setState(() {
           _selectedLength = selected ? length : null;

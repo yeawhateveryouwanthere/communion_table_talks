@@ -416,6 +416,19 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
     );
   }
 
+  String _timeForLabel(String label) {
+    switch (label) {
+      case 'Brief':
+        return '2–3 min';
+      case 'Medium':
+        return '4–6 min';
+      case 'Substantive':
+        return '7–10 min';
+      default:
+        return '';
+    }
+  }
+
   Widget _buildLengthOption(String label, PresentationLength length) {
     final isSelected = _selectedLength == length;
     final color = AppTheme.lengthColor(label);
@@ -453,6 +466,17 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
                   fontWeight:
                       isSelected ? FontWeight.w600 : FontWeight.w400,
                   fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                _timeForLabel(label),
+                style: TextStyle(
+                  color: isSelected
+                      ? color.withOpacity(0.7)
+                      : AppTheme.textSecondary.withOpacity(0.6),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ],
